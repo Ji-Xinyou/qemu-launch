@@ -11,14 +11,13 @@ const QEMU_PARAM_DELIMITER: &str = " ";
 pub struct Qemu {
     bin_path: String,
 
-    params: String,
+    args: Vec<String>,
 }
 
 impl Qemu {
     /// new qemu instance
-    pub fn new(bin_path: String, params: Vec<&str>) -> Self {
-        let params = params.join(QEMU_PARAM_DELIMITER);
-        Self { bin_path, params }
+    pub fn new(bin_path: String, args: Vec<String>) -> Self {
+        Self { bin_path, args }
     }
 
     pub fn from_config(config: QemuConfig) -> Self {
@@ -28,7 +27,7 @@ impl Qemu {
     /// launch qemu process with expected parameters
     pub fn launch(&self) -> Result<()> {
         Command::new(&self.bin_path)
-            .arg(&self.params)
+            .args(&self.args)
             .spawn()
             .expect("Failed to spawn QEMU process");
         Ok(())

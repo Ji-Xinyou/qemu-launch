@@ -1,6 +1,6 @@
 /// the machine that qemu will emulate...
 #[derive(Debug, Default)]
-pub(crate) struct Machine {
+pub struct Machine {
     /// machine type used by QEMU
     pub(crate) r#type: String,
 
@@ -13,7 +13,7 @@ pub(crate) struct Machine {
 
 /// the kernel qemu runs
 #[derive(Debug, Default)]
-pub(crate) struct Kernel {
+pub struct Kernel {
     /// guest kernel path on host fs
     pub(crate) path: String,
 
@@ -26,7 +26,7 @@ pub(crate) struct Kernel {
 
 /// smp configuration
 #[derive(Debug, Default)]
-pub(crate) struct Smp {
+pub struct Smp {
     /// the number of cpu available to QEMU
     pub(crate) cpus: u32,
 
@@ -45,7 +45,7 @@ pub(crate) struct Smp {
 }
 
 #[derive(Debug, Default)]
-pub(crate) struct Memory {
+pub struct Memory {
     /// amount of memory available to guest
     /// suffixed with M or G
     pub(crate) size: String,
