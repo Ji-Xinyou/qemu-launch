@@ -1,223 +1,225 @@
 #![allow(dead_code)]
 
+use crate::config::QemuConfig;
+
 /// trait that Devices should implement
-pub(crate) trait Device {
-    fn valid() -> bool;
-    fn qemu_params() -> String;
+pub trait Device {
+    fn valid(&self) -> bool;
+    fn set_qemu_params(&self, config: &QemuConfig);
 }
 
-struct FSDevice {}
+pub struct FSDevice {}
 
 impl Device for FSDevice {
-    fn qemu_params() -> String {
+    fn set_qemu_params(&self, config: &QemuConfig) {
         unimplemented!();
     }
 
-    fn valid() -> bool {
+    fn valid(&self) -> bool {
         unimplemented!();
     }
 }
 
-struct NetDevice {}
+pub struct NetDevice {}
 
 impl Device for NetDevice {
-    fn qemu_params() -> String {
+    fn set_qemu_params(&self, config: &QemuConfig) {
         unimplemented!();
     }
 
-    fn valid() -> bool {
+    fn valid(&self) -> bool {
         unimplemented!();
     }
 }
 
-struct CharDevice {}
+pub struct CharDevice {}
 
 impl Device for CharDevice {
-    fn qemu_params() -> String {
+    fn set_qemu_params(&self, config: &QemuConfig) {
         unimplemented!();
     }
 
-    fn valid() -> bool {
+    fn valid(&self) -> bool {
         unimplemented!();
     }
 }
 
-struct LegacySerialDevice {}
+pub struct LegacySerialDevice {}
 
 impl Device for LegacySerialDevice {
-    fn qemu_params() -> String {
+    fn set_qemu_params(&self, config: &QemuConfig) {
         unimplemented!();
     }
 
-    fn valid() -> bool {
+    fn valid(&self) -> bool {
         unimplemented!();
     }
 }
 
-struct SerialDevice {}
+pub struct SerialDevice {}
 
 impl Device for SerialDevice {
-    fn qemu_params() -> String {
+    fn set_qemu_params(&self, config: &QemuConfig) {
         unimplemented!();
     }
 
-    fn valid() -> bool {
+    fn valid(&self) -> bool {
         unimplemented!();
     }
 }
 
-struct BlockDevice {}
+pub struct BlockDevice {}
 
 impl Device for BlockDevice {
-    fn qemu_params() -> String {
+    fn set_qemu_params(&self, config: &QemuConfig) {
         unimplemented!();
     }
 
-    fn valid() -> bool {
+    fn valid(&self) -> bool {
         unimplemented!();
     }
 }
 
-struct PVPanicDevice {}
+pub struct PVPanicDevice {}
 
 impl Device for PVPanicDevice {
-    fn qemu_params() -> String {
+    fn set_qemu_params(&self, config: &QemuConfig) {
         unimplemented!();
     }
 
-    fn valid() -> bool {
+    fn valid(&self) -> bool {
         unimplemented!();
     }
 }
 
-struct LoaderDevice {}
+pub struct LoaderDevice {}
 
 impl Device for LoaderDevice {
-    fn qemu_params() -> String {
+    fn set_qemu_params(&self, config: &QemuConfig) {
         unimplemented!();
     }
 
-    fn valid() -> bool {
+    fn valid(&self) -> bool {
         unimplemented!();
     }
 }
 
-struct VhostUserDevice {}
+pub struct VhostUserDevice {}
 
 impl Device for VhostUserDevice {
-    fn qemu_params() -> String {
+    fn set_qemu_params(&self, config: &QemuConfig) {
         unimplemented!();
     }
 
-    fn valid() -> bool {
+    fn valid(&self) -> bool {
         unimplemented!();
     }
 }
 
-struct PcieRootPortDevice {}
+pub struct PcieRootPortDevice {}
 
 impl Device for PcieRootPortDevice {
-    fn qemu_params() -> String {
+    fn set_qemu_params(&self, config: &QemuConfig) {
         unimplemented!();
     }
 
-    fn valid() -> bool {
+    fn valid(&self) -> bool {
         unimplemented!();
     }
 }
 
-struct VFIODevice {}
+pub struct VFIODevice {}
 
 impl Device for VFIODevice {
-    fn qemu_params() -> String {
+    fn set_qemu_params(&self, config: &QemuConfig) {
         unimplemented!();
     }
 
-    fn valid() -> bool {
+    fn valid(&self) -> bool {
         unimplemented!();
     }
 }
 
-struct ScsiController {}
+pub struct ScsiController {}
 
 impl Device for ScsiController {
-    fn qemu_params() -> String {
+    fn set_qemu_params(&self, config: &QemuConfig) {
         unimplemented!();
     }
 
-    fn valid() -> bool {
+    fn valid(&self) -> bool {
         unimplemented!();
     }
 }
 
-struct BridgeDevice {}
+pub struct BridgeDevice {}
 
 impl Device for BridgeDevice {
-    fn qemu_params() -> String {
+    fn set_qemu_params(&self, config: &QemuConfig) {
         unimplemented!();
     }
 
-    fn valid() -> bool {
+    fn valid(&self) -> bool {
         unimplemented!();
     }
 }
 
-struct VSockDevice {}
+pub struct VSockDevice {}
 
 impl Device for VSockDevice {
-    fn qemu_params() -> String {
+    fn set_qemu_params(&self, config: &QemuConfig) {
         unimplemented!();
     }
 
-    fn valid() -> bool {
+    fn valid(&self) -> bool {
         unimplemented!();
     }
 }
 
-struct RngDevice {}
+pub struct RngDevice {}
 
 impl Device for RngDevice {
-    fn qemu_params() -> String {
+    fn set_qemu_params(&self, config: &QemuConfig) {
         unimplemented!();
     }
 
-    fn valid() -> bool {
+    fn valid(&self) -> bool {
         unimplemented!();
     }
 }
 
-struct BalloonDevice {}
+pub struct BalloonDevice {}
 
 impl Device for BalloonDevice {
-    fn qemu_params() -> String {
+    fn set_qemu_params(&self, config: &QemuConfig) {
         unimplemented!();
     }
 
-    fn valid() -> bool {
+    fn valid(&self) -> bool {
         unimplemented!();
     }
 }
 
-struct IommuDevice {}
+pub struct IommuDevice {}
 
 impl Device for IommuDevice {
-    fn qemu_params() -> String {
+    fn set_qemu_params(&self, config: &QemuConfig) {
         unimplemented!();
     }
 
-    fn valid() -> bool {
+    fn valid(&self) -> bool {
         unimplemented!();
     }
 }
 
-struct FwConfig {}
+pub struct FwConfig {}
 
 impl Device for FwConfig {
-    fn qemu_params() -> String {
+    fn set_qemu_params(&self, config: &QemuConfig) {
         unimplemented!();
     }
 
-    fn valid() -> bool {
+    fn valid(&self) -> bool {
         unimplemented!();
     }
 }

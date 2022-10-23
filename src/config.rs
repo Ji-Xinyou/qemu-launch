@@ -116,7 +116,12 @@ impl QemuConfig {
         self
     }
 
-    pub fn add_devices(mut self) -> Self {
+    pub fn add_devices(mut self, devices: Vec<Box<dyn Device>>) -> Self {
+        devices.into_iter().for_each(|dev| {
+            if dev.valid() {
+                dev.set_qemu_params(&self);
+            }
+        });
         self
     }
 }
