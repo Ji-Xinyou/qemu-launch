@@ -2,10 +2,11 @@ use uuid::Uuid;
 use anyhow::{anyhow, Result};
 
 use crate::device::Device;
+use crate::qemu::Qemu;
 use crate::types::{Kernel, Machine, Memory, Smp};
 
 /// the configuration of QEMU
-#[derive(Debug, Default)]
+#[derive(Default)]
 pub struct QemuConfig {
     /// binary path of QEMU
     bin_path: String,
@@ -35,6 +36,9 @@ pub struct QemuConfig {
     machine: Machine,
 
     // todo: qmp socket
+
+    devices: Vec<Box<dyn Device>>,
+
     // todo: RTC(real-time-clock)
     /// vga mode
     vga: String,
@@ -69,6 +73,23 @@ pub struct QemuConfig {
 
 /// QemuConfig builder
 impl QemuConfig {
+    pub fn build_all(&self) -> Self {
+        let uuid = Uuid::new_v4();
+        let cfg = QemuConfig::builder();
+
+        cfg.add_cpu_model(&self.cpu_model)
+            .add_bios(&self.bios)
+            .add_devices(&self.devices)
+            .add_global_params(&self.global_params)
+            .add_kernel(&self.kernel)
+            .add_machine(&self.machine)
+            .add_memory(&self.memory)
+            .add_name(&self.name)
+            .add_seccomp(&self.seccomp_sandbox)
+            .add_uuid(uuid)
+            .add_smp(&self.smp).expect("failed to build all")
+    }
+
     /// returns a default configuration
     pub fn builder() -> Self {
         Self {
@@ -76,34 +97,34 @@ impl QemuConfig {
         }
     }
 
-    pub fn add_seccomp(mut self, seccomp_sandbox: String) -> Self {
+    pub fn add_seccomp(mut self, seccomp_sandbox: &str) -> Self {
         if !seccomp_sandbox.is_empty() {
             self.qemu_params.push("-sandbox".to_owned());
-            self.qemu_params.push(seccomp_sandbox);
+            self.qemu_params.push(seccomp_sandbox.to_owned());
         }
         self
     }
 
-    pub fn add_name(mut self, name: String) -> Self {
+    pub fn add_name(mut self, name: &str) -> Self {
         if !name.is_empty() {
             self.qemu_params.push("-name".to_owned());
-            self.qemu_params.push(name);
+            self.qemu_params.push(name.to_owned());
         }
         self
     }
 
-    pub fn add_machine(mut self, machine: Machine) -> Self {
+    pub fn add_machine(mut self, machine: &Machine) -> Self {
         if !machine.r#type.is_empty() {
             let mut machine_params = vec![];
 
-            machine_params.push(machine.r#type);
+            machine_params.push(machine.r#type.to_owned());
 
             if !machine.acceleration.is_empty() {
                 machine_params.push(format!("accel={}", machine.acceleration));
             }
 
             if !machine.options.is_empty() {
-                machine_params.push(machine.options);
+                machine_params.push(machine.options.to_owned());
             }
 
             self.qemu_params.push("-machine".to_owned());
@@ -112,15 +133,15 @@ impl QemuConfig {
         self
     }
 
-    pub fn add_cpu_model(mut self, cpu_model: String) -> Self {
+    pub fn add_cpu_model(mut self, cpu_model: &str) -> Self {
         if !cpu_model.is_empty() {
             self.qemu_params.push("-cpu".to_owned());
-            self.qemu_params.push(cpu_model);
+            self.qemu_params.push(cpu_model.to_owned());
         }
         self
     }
 
-    pub fn add_devices(mut self, devices: Vec<Box<dyn Device>>) -> Self {
+    pub fn add_devices(mut self, devices: &Vec<Box<dyn Device>>) -> Self {
         devices.into_iter().for_each(|dev| {
             if dev.valid() {
                 dev.set_qemu_params(&self);
@@ -137,10 +158,10 @@ impl QemuConfig {
         self
     }
 
-    pub fn add_memory(mut self, memory: Memory) -> Self {
+    pub fn add_memory(mut self, memory: &Memory) -> Self {
         if !memory.size.is_empty() {
             let mut memory_params = vec![];
-            memory_params.push(memory.size);
+            memory_params.push(memory.size.to_owned());
 
             if memory.slots > 0 {
                 memory_params.push(format!("slots={}", memory.slots));
@@ -156,7 +177,7 @@ impl QemuConfig {
         self
     }
 
-    pub fn add_smp(mut self, smp: Smp) -> Result<Self> {
+    pub fn add_smp(mut self, smp: &Smp) -> Result<Self> {
         if smp.cpus > 0 {
             let mut smp_params = vec![];
             smp_params.push(smp.cpus.to_string());
@@ -186,36 +207,36 @@ impl QemuConfig {
         Ok(self)
     }
 
-    pub fn add_global_params(mut self, global_params: String) -> Self {
+    pub fn add_global_params(mut self, global_params: &str) -> Self {
         if !global_params.is_empty() {
             self.qemu_params.push("-global".to_owned());
-            self.qemu_params.push(global_params);
+            self.qemu_params.push(global_params.to_owned());
         }
         self
     }
 
-    pub fn add_kernel(mut self, kernel: Kernel) -> Self {
+    pub fn add_kernel(mut self, kernel: &Kernel) -> Self {
         if !kernel.path.is_empty() {
             self.qemu_params.push("-kernel".to_owned());
-            self.qemu_params.push(kernel.path);
+            self.qemu_params.push(kernel.path.to_owned());
 
             if !kernel.initrd_path.is_empty() {
                 self.qemu_params.push("-initrd".to_owned());
-                self.qemu_params.push(kernel.initrd_path);
+                self.qemu_params.push(kernel.initrd_path.to_owned());
             }
 
             if !kernel.params.is_empty() {
                 self.qemu_params.push("-append".to_owned());
-                self.qemu_params.push(kernel.params);
+                self.qemu_params.push(kernel.params.to_owned());
             }
         }
         self
     }
 
-    pub fn add_bios(mut self, bios: String) -> Self {
+    pub fn add_bios(mut self, bios: &str) -> Self {
         if !bios.is_empty() {
             self.qemu_params.push("-bios".to_owned());
-            self.qemu_params.push(bios);
+            self.qemu_params.push(bios.to_owned());
         }
         self
     }
