@@ -43,6 +43,6 @@ impl Qemu {
 // utils
 impl Qemu {
     pub fn dump(&self) {
-        info!("Binary path: {}\nargs: {:?}", self.bin_path, self.args);
+        println!("Binary path: {}\nargs: {:?}", self.bin_path, self.args);
     }
 }

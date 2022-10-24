@@ -12,6 +12,8 @@ global_params = ""
 
 bios = ""
 
+no_graphic = true
+
 [kernel]
 path = ""
 initrd_path = ""

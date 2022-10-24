@@ -61,6 +61,8 @@ pub struct QemuConfig {
     // -bios
     bios: String,
 
+    no_graphic: bool,
+
     // todo: pflash
     // todo: incoming
     // todo: fds
@@ -111,6 +113,7 @@ impl QemuConfig {
             .add_name(&self.name)
             .add_seccomp(&self.seccomp_sandbox)
             .add_uuid(uuid)
+            .add_no_graphic(self.no_graphic)
             .add_smp(&self.smp)
             .expect("failed to build all")
     }
@@ -268,6 +271,13 @@ impl QemuConfig {
         }
         self
     }
+
+    pub fn add_no_graphic(mut self, no_graphic: bool) -> Self {
+        if no_graphic {
+            self.qemu_params.push("-nographic".to_owned());
+        }
+        self
+    }
 }
 
 impl QemuConfig {
@@ -281,8 +291,8 @@ impl Clone for QemuConfig {
     fn clone(&self) -> Self {
         Self {
             bin_path: self.bin_path.clone(),
-            uid: self.uid.clone(),
-            gid: self.gid.clone(),
+            uid: self.uid,
+            gid: self.gid,
             groups: self.groups.clone(),
             name: self.name.clone(),
             uuid: self.uuid.clone(),
@@ -294,6 +304,7 @@ impl Clone for QemuConfig {
             kernel: self.kernel.clone(),
             memory: self.memory.clone(),
             smp: self.smp.clone(),
+            no_graphic: self.no_graphic,
             global_params: self.global_params.clone(),
             bios: self.bios.clone(),
             qemu_params: self.qemu_params.clone(),
