@@ -1,15 +1,19 @@
-use uuid::Uuid;
+use std::collections::HashMap;
+
 use anyhow::{anyhow, Result};
+use serde::{Deserialize, Serialize};
+use uuid::Uuid;
 
 use crate::device::Device;
 use crate::qemu::Qemu;
 use crate::types::{Kernel, Machine, Memory, Smp};
 
 /// the configuration of QEMU
-#[derive(Default)]
+#[derive(Default, Serialize, Deserialize)]
+#[serde(default)]
 pub struct QemuConfig {
     /// binary path of QEMU
-    bin_path: String,
+    pub bin_path: String,
 
     /// user id
     uid: u32,
@@ -36,7 +40,7 @@ pub struct QemuConfig {
     machine: Machine,
 
     // todo: qmp socket
-
+    #[serde(skip_deserializing, skip_serializing)]
     devices: Vec<Box<dyn Device>>,
 
     // todo: RTC(real-time-clock)
@@ -68,14 +72,30 @@ pub struct QemuConfig {
     // todo: pidfile
     // todo: logfile
     /// qemu parameters
-    qemu_params: Vec<String>,
+    pub qemu_params: Vec<String>,
 }
 
-/// QemuConfig builder
+/// QemuConfig
+/// # How to build
+/// To build your own config, you use builder(), and cumulatively add the components you want
+/// ```rust
+/// use config::QemuConfig;
+///
+/// # fn main() {
+///     let config = QemuConfig::builder()
+///         .add_name("myqemu");
+/// # }
+/// ```
 impl QemuConfig {
+    pub fn from_toml(path: &str) -> Self {
+        let content = std::fs::read_to_string(path).expect("failed to fetch file content");
+        toml::from_str(&content).expect("failed to get toml content")
+    }
+
     pub fn build_all(&self) -> Self {
         let uuid = Uuid::new_v4();
-        let cfg = QemuConfig::builder();
+        let mut cfg = QemuConfig::builder();
+        cfg.bin_path = self.bin_path.to_owned();
 
         cfg.add_cpu_model(&self.cpu_model)
             .add_bios(&self.bios)
@@ -87,7 +107,8 @@ impl QemuConfig {
             .add_name(&self.name)
             .add_seccomp(&self.seccomp_sandbox)
             .add_uuid(uuid)
-            .add_smp(&self.smp).expect("failed to build all")
+            .add_smp(&self.smp)
+            .expect("failed to build all")
     }
 
     /// returns a default configuration
@@ -114,10 +135,10 @@ impl QemuConfig {
     }
 
     pub fn add_machine(mut self, machine: &Machine) -> Self {
-        if !machine.r#type.is_empty() {
+        if !machine.machine_type.is_empty() {
             let mut machine_params = vec![];
 
-            machine_params.push(machine.r#type.to_owned());
+            machine_params.push(machine.machine_type.to_owned());
 
             if !machine.acceleration.is_empty() {
                 machine_params.push(format!("accel={}", machine.acceleration));
@@ -144,7 +165,7 @@ impl QemuConfig {
     pub fn add_devices(mut self, devices: &Vec<Box<dyn Device>>) -> Self {
         devices.into_iter().for_each(|dev| {
             if dev.valid() {
-                dev.set_qemu_params(&self);
+                dev.set_qemu_params(&mut self);
             }
         });
         self
@@ -201,6 +222,8 @@ impl QemuConfig {
                 smp_params.push(format!("maxcpus={}", smp.max_cpus));
             }
 
+            assert_eq!(smp.sockets * smp.cores * smp.threads, smp.max_cpus);
+
             self.qemu_params.push("-smp".to_owned());
             self.qemu_params.push(smp_params.join(","));
         }
@@ -239,5 +262,11 @@ impl QemuConfig {
             self.qemu_params.push(bios.to_owned());
         }
         self
+    }
+}
+
+impl QemuConfig {
+    pub fn dump(&self) {
+        println!("{:?}", self.cpu_model);
     }
 }

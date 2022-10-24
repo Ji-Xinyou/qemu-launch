@@ -1,4 +1,5 @@
 use anyhow::{anyhow, Context, Result};
+use log::info;
 
 use crate::config::QemuConfig;
 
@@ -21,7 +22,12 @@ impl Qemu {
     }
 
     pub fn from_config(config: QemuConfig) -> Self {
-        unimplemented!()
+        let config = config.build_all();
+
+        Self {
+            bin_path: config.bin_path,
+            args: config.qemu_params,
+        }
     }
 
     /// launch qemu process with expected parameters
@@ -31,5 +37,12 @@ impl Qemu {
             .spawn()
             .expect("Failed to spawn QEMU process");
         Ok(())
+    }
+}
+
+// utils
+impl Qemu {
+    pub fn dump(&self) {
+        println!("Binary path: {}\nargs: {:?}", self.bin_path, self.args);
     }
 }

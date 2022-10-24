@@ -1,8 +1,10 @@
+use serde::{Deserialize, Serialize};
+
 /// the machine that qemu will emulate...
-#[derive(Debug, Default, Clone)]
+#[derive(Debug, Default, Serialize, Deserialize)]
 pub struct Machine {
     /// machine type used by QEMU
-    pub(crate) r#type: String,
+    pub(crate) machine_type: String,
 
     /// machine acceleration options
     pub(crate) acceleration: String,
@@ -12,7 +14,7 @@ pub struct Machine {
 }
 
 /// the kernel qemu runs
-#[derive(Debug, Default, Clone)]
+#[derive(Debug, Default, Serialize, Deserialize)]
 pub struct Kernel {
     /// guest kernel path on host fs
     pub(crate) path: String,
@@ -25,7 +27,7 @@ pub struct Kernel {
 }
 
 /// smp configuration
-#[derive(Debug, Default, Clone, Copy)]
+#[derive(Debug, Default, Clone, Copy, Serialize, Deserialize)]
 pub struct Smp {
     /// the number of cpu available to QEMU
     pub(crate) cpus: u32,
@@ -44,7 +46,7 @@ pub struct Smp {
     pub(crate) max_cpus: u32,
 }
 
-#[derive(Debug, Default, Clone)]
+#[derive(Debug, Default, Clone, Serialize, Deserialize)]
 pub struct Memory {
     /// amount of memory available to guest
     /// suffixed with M or G

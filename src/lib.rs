@@ -1,6 +1,8 @@
-mod config;
+#![allow(dead_code)]
+
+pub mod config;
 mod device;
-mod qemu;
+pub mod qemu;
 mod types;
 
 #[cfg(test)]

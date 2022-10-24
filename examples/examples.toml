@@ -1,0 +1,36 @@
+# qemu configuration toml file
+
+bin_path = "qemu-system-x86_64"
+
+name = "myQemu"
+
+cpu_model = "qemu64"
+
+vga = "std"
+
+global_params = ""
+
+bios = ""
+
+[kernel]
+path = ""
+initrd_path = ""
+params = ""
+
+[memory]
+size = "512M"
+slots = 4
+max_memory = "2G"
+path = ""
+
+[smp]
+cpus = 4
+cores = 2
+threads = 1
+sockets = 4
+max_cpus = 8
+
+[machine]
+machine_type = "microvm"
+acceleration = ""
+options = ""
