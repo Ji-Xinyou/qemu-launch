@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 
 /// the machine that qemu will emulate...
-#[derive(Debug, Default, Serialize, Deserialize)]
+#[derive(Debug, Default, Serialize, Deserialize, Clone)]
 pub struct Machine {
     /// machine type used by QEMU
     pub(crate) machine_type: String,
@@ -14,7 +14,7 @@ pub struct Machine {
 }
 
 /// the kernel qemu runs
-#[derive(Debug, Default, Serialize, Deserialize)]
+#[derive(Debug, Default, Serialize, Deserialize, Clone)]
 pub struct Kernel {
     /// guest kernel path on host fs
     pub(crate) path: String,

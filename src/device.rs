@@ -11,7 +11,7 @@ pub trait Device {
 pub struct FSDevice {}
 
 impl Device for FSDevice {
-    fn set_qemu_params(&self, config: &mut QemuConfig) {
+    fn set_qemu_params(&self, _config: &mut QemuConfig) {
         unimplemented!();
     }
 
@@ -23,7 +23,7 @@ impl Device for FSDevice {
 pub struct NetDevice {}
 
 impl Device for NetDevice {
-    fn set_qemu_params(&self, config: &mut QemuConfig) {
+    fn set_qemu_params(&self, _config: &mut QemuConfig) {
         unimplemented!();
     }
 
@@ -35,7 +35,7 @@ impl Device for NetDevice {
 pub struct CharDevice {}
 
 impl Device for CharDevice {
-    fn set_qemu_params(&self, config: &mut QemuConfig) {
+    fn set_qemu_params(&self, _config: &mut QemuConfig) {
         unimplemented!();
     }
 
@@ -47,7 +47,7 @@ impl Device for CharDevice {
 pub struct LegacySerialDevice {}
 
 impl Device for LegacySerialDevice {
-    fn set_qemu_params(&self, config: &mut QemuConfig) {
+    fn set_qemu_params(&self, _config: &mut QemuConfig) {
         unimplemented!();
     }
 
@@ -59,7 +59,7 @@ impl Device for LegacySerialDevice {
 pub struct SerialDevice {}
 
 impl Device for SerialDevice {
-    fn set_qemu_params(&self, config: &mut QemuConfig) {
+    fn set_qemu_params(&self, _config: &mut QemuConfig) {
         unimplemented!();
     }
 
@@ -71,7 +71,7 @@ impl Device for SerialDevice {
 pub struct BlockDevice {}
 
 impl Device for BlockDevice {
-    fn set_qemu_params(&self, config: &mut QemuConfig) {
+    fn set_qemu_params(&self, _config: &mut QemuConfig) {
         unimplemented!();
     }
 
@@ -83,7 +83,7 @@ impl Device for BlockDevice {
 pub struct PVPanicDevice {}
 
 impl Device for PVPanicDevice {
-    fn set_qemu_params(&self, config: &mut QemuConfig) {
+    fn set_qemu_params(&self, _config: &mut QemuConfig) {
         unimplemented!();
     }
 
@@ -95,7 +95,7 @@ impl Device for PVPanicDevice {
 pub struct LoaderDevice {}
 
 impl Device for LoaderDevice {
-    fn set_qemu_params(&self, config: &mut QemuConfig) {
+    fn set_qemu_params(&self, _config: &mut QemuConfig) {
         unimplemented!();
     }
 
@@ -107,7 +107,7 @@ impl Device for LoaderDevice {
 pub struct VhostUserDevice {}
 
 impl Device for VhostUserDevice {
-    fn set_qemu_params(&self, config: &mut QemuConfig) {
+    fn set_qemu_params(&self, _config: &mut QemuConfig) {
         unimplemented!();
     }
 
@@ -119,7 +119,7 @@ impl Device for VhostUserDevice {
 pub struct PcieRootPortDevice {}
 
 impl Device for PcieRootPortDevice {
-    fn set_qemu_params(&self, config: &mut QemuConfig) {
+    fn set_qemu_params(&self, _config: &mut QemuConfig) {
         unimplemented!();
     }
 
@@ -131,7 +131,7 @@ impl Device for PcieRootPortDevice {
 pub struct VFIODevice {}
 
 impl Device for VFIODevice {
-    fn set_qemu_params(&self, config: &mut QemuConfig) {
+    fn set_qemu_params(&self, _config: &mut QemuConfig) {
         unimplemented!();
     }
 
@@ -143,7 +143,7 @@ impl Device for VFIODevice {
 pub struct ScsiController {}
 
 impl Device for ScsiController {
-    fn set_qemu_params(&self, config: &mut QemuConfig) {
+    fn set_qemu_params(&self, _config: &mut QemuConfig) {
         unimplemented!();
     }
 
@@ -155,7 +155,7 @@ impl Device for ScsiController {
 pub struct BridgeDevice {}
 
 impl Device for BridgeDevice {
-    fn set_qemu_params(&self, config: &mut QemuConfig) {
+    fn set_qemu_params(&self, _config: &mut QemuConfig) {
         unimplemented!();
     }
 
@@ -167,7 +167,7 @@ impl Device for BridgeDevice {
 pub struct VSockDevice {}
 
 impl Device for VSockDevice {
-    fn set_qemu_params(&self, config: &mut QemuConfig) {
+    fn set_qemu_params(&self, _config: &mut QemuConfig) {
         unimplemented!();
     }
 
@@ -179,7 +179,7 @@ impl Device for VSockDevice {
 pub struct RngDevice {}
 
 impl Device for RngDevice {
-    fn set_qemu_params(&self, config: &mut QemuConfig) {
+    fn set_qemu_params(&self, _config: &mut QemuConfig) {
         unimplemented!();
     }
 
@@ -191,7 +191,7 @@ impl Device for RngDevice {
 pub struct BalloonDevice {}
 
 impl Device for BalloonDevice {
-    fn set_qemu_params(&self, config: &mut QemuConfig) {
+    fn set_qemu_params(&self, _config: &mut QemuConfig) {
         unimplemented!();
     }
 
@@ -203,7 +203,7 @@ impl Device for BalloonDevice {
 pub struct IommuDevice {}
 
 impl Device for IommuDevice {
-    fn set_qemu_params(&self, config: &mut QemuConfig) {
+    fn set_qemu_params(&self, _config: &mut QemuConfig) {
         unimplemented!();
     }
 
@@ -215,7 +215,7 @@ impl Device for IommuDevice {
 pub struct FwConfig {}
 
 impl Device for FwConfig {
-    fn set_qemu_params(&self, config: &mut QemuConfig) {
+    fn set_qemu_params(&self, _config: &mut QemuConfig) {
         unimplemented!();
     }
 

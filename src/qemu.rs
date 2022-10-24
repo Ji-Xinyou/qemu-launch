@@ -1,4 +1,4 @@
-use anyhow::{anyhow, Context, Result};
+use anyhow::Result;
 use log::info;
 
 use crate::config::QemuConfig;
@@ -43,6 +43,6 @@ impl Qemu {
 // utils
 impl Qemu {
     pub fn dump(&self) {
-        println!("Binary path: {}\nargs: {:?}", self.bin_path, self.args);
+        info!("Binary path: {}\nargs: {:?}", self.bin_path, self.args);
     }
 }

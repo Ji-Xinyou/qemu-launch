@@ -1,11 +1,8 @@
-use std::collections::HashMap;
-
 use anyhow::{anyhow, Result};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 use crate::device::Device;
-use crate::qemu::Qemu;
 use crate::types::{Kernel, Machine, Memory, Smp};
 
 /// the configuration of QEMU
@@ -82,20 +79,27 @@ pub struct QemuConfig {
 /// use config::QemuConfig;
 ///
 /// # fn main() {
-///     let config = QemuConfig::builder()
-///         .add_name("myqemu");
+/// let config = QemuConfig::builder()
+///     .add_name("myqemu");
 /// # }
 /// ```
 impl QemuConfig {
+    /// From toml, acquires an configuration file.
+    /// the configuration did not set the [`qemu_params`] argument, i.e. the function
+    /// `build_all(&self)` is not called, instead, all the other fields are filled
+    /// In `Qemu::from_config(config: QemuConfig)`, the config.build_all() is called
+    /// at there all qemu_params will be filled.
     pub fn from_toml(path: &str) -> Self {
         let content = std::fs::read_to_string(path).expect("failed to fetch file content");
         toml::from_str(&content).expect("failed to get toml content")
     }
 
+    /// Fill the `self.qemu_params` based on the fields we have filled
+    /// Notice that this is not idempotent, duplicate call will append
+    /// new params after the original ones
     pub fn build_all(&self) -> Self {
         let uuid = Uuid::new_v4();
-        let mut cfg = QemuConfig::builder();
-        cfg.bin_path = self.bin_path.to_owned();
+        let cfg = self.clone();
 
         cfg.add_cpu_model(&self.cpu_model)
             .add_bios(&self.bios)
@@ -111,7 +115,7 @@ impl QemuConfig {
             .expect("failed to build all")
     }
 
-    /// returns a default configuration
+    /// returns a default instance of `QemuConfig`
     pub fn builder() -> Self {
         Self {
             ..Default::default()
@@ -129,7 +133,7 @@ impl QemuConfig {
     pub fn add_name(mut self, name: &str) -> Self {
         if !name.is_empty() {
             self.qemu_params.push("-name".to_owned());
-            self.qemu_params.push(name.to_owned());
+            self.qemu_params.push(name.to_string());
         }
         self
     }
@@ -162,6 +166,7 @@ impl QemuConfig {
         self
     }
 
+    /// Normally, we add device after `build_all()` since it is not cloneable
     pub fn add_devices(mut self, devices: &Vec<Box<dyn Device>>) -> Self {
         devices.into_iter().for_each(|dev| {
             if dev.valid() {
@@ -268,5 +273,30 @@ impl QemuConfig {
 impl QemuConfig {
     pub fn dump(&self) {
         println!("{:?}", self.cpu_model);
+    }
+}
+
+/// The devices are not cloned, need to re-add the device if cloned
+impl Clone for QemuConfig {
+    fn clone(&self) -> Self {
+        Self {
+            bin_path: self.bin_path.clone(),
+            uid: self.uid.clone(),
+            gid: self.gid.clone(),
+            groups: self.groups.clone(),
+            name: self.name.clone(),
+            uuid: self.uuid.clone(),
+            cpu_model: self.cpu_model.clone(),
+            seccomp_sandbox: self.seccomp_sandbox.clone(),
+            machine: self.machine.clone(),
+            devices: vec![],
+            vga: self.vga.clone(),
+            kernel: self.kernel.clone(),
+            memory: self.memory.clone(),
+            smp: self.smp.clone(),
+            global_params: self.global_params.clone(),
+            bios: self.bios.clone(),
+            qemu_params: self.qemu_params.clone(),
+        }
     }
 }
