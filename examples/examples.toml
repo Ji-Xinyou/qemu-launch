@@ -15,14 +15,15 @@ bios = ""
 no_graphic = true
 
 [kernel]
-path = ""
+path = "/usr/share/kata-containers/vmlinuz.container"
+# initrd_path = "/usr/share/kata-containers/kata-containers.img"
 initrd_path = ""
-params = ""
+params = "console=ttyS0"
 
 [memory]
-size = "512M"
-slots = 4
-max_memory = "2G"
+size = "1G"
+slots = 0
+max_memory = ""
 path = ""
 
 [smp]
@@ -33,6 +34,6 @@ sockets = 4
 max_cpus = 8
 
 [machine]
-machine_type = "microvm"
+machine_type = ""
 acceleration = ""
 options = ""

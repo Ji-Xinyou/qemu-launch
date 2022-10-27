@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 use crate::device::Device;
-use crate::types::{Kernel, Machine, Memory, Smp};
+use crate::types::{Kernel, Machine, Memory, QmpSocket, Rtc, Smp};
 
 /// the configuration of QEMU
 #[derive(Default, Serialize, Deserialize)]
@@ -36,11 +36,13 @@ pub struct QemuConfig {
     /// machine type configuration
     machine: Machine,
 
-    // todo: qmp socket
+    qmp_sockets: Vec<QmpSocket>,
+
     #[serde(skip_deserializing, skip_serializing)]
     devices: Vec<Box<dyn Device>>,
 
-    // todo: RTC(real-time-clock)
+    rtc: Rtc,
+
     /// vga mode
     vga: String,
 
@@ -114,6 +116,8 @@ impl QemuConfig {
             .add_seccomp(&self.seccomp_sandbox)
             .add_uuid(uuid)
             .add_no_graphic(self.no_graphic)
+            .add_rtc(&self.rtc)
+            .add_qmp_sockets(&self.qmp_sockets)
             .add_smp(&self.smp)
             .expect("failed to build all")
     }
@@ -278,6 +282,45 @@ impl QemuConfig {
         }
         self
     }
+
+    pub fn add_rtc(mut self, rtc: &Rtc) -> Self {
+        if !rtc.valid() {
+            return self;
+        }
+
+        let mut rtc_params = vec![format!("base={}", rtc.base)];
+
+        if !rtc.drift_fix.is_empty() {
+            rtc_params.push(format!("driftfix={}", rtc.drift_fix));
+        }
+
+        if !rtc.clock.is_empty() {
+            rtc_params.push(format!("clock={}", rtc.clock));
+        }
+
+        self.qemu_params.push(rtc_params.join(","));
+        self
+    }
+
+    pub fn add_qmp_sockets(mut self, qmp_sockets: &Vec<QmpSocket>) -> Self {
+        for socket in qmp_sockets {
+            if !socket.valid() {
+                continue;
+            }
+
+            let mut qmp_params = vec![format!("{}:{}", socket.socket_type, socket.name)];
+            if socket.is_server {
+                qmp_params.push("server=on".to_owned());
+                if socket.no_wait {
+                    qmp_params.push("wait=off".to_owned());
+                }
+            }
+
+            self.qemu_params.push("-qmp".to_owned());
+            self.qemu_params.push(qmp_params.join(","))
+        }
+        self
+    }
 }
 
 impl QemuConfig {
@@ -308,6 +351,8 @@ impl Clone for QemuConfig {
             global_params: self.global_params.clone(),
             bios: self.bios.clone(),
             qemu_params: self.qemu_params.clone(),
+            rtc: self.rtc.clone(),
+            qmp_sockets: self.qmp_sockets.clone(),
         }
     }
 }

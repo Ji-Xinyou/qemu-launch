@@ -13,6 +13,65 @@ pub struct Machine {
     pub(crate) options: String,
 }
 
+/// real time clock
+#[derive(Debug, Default, Serialize, Deserialize, Clone)]
+pub struct Rtc {
+    /// RTC start time
+    pub(crate) base: String,
+
+    /// RTC clock driver
+    pub(crate) clock: String,
+
+    /// drift fixing mechanism
+    pub(crate) drift_fix: String,
+}
+
+impl Rtc {
+    pub(crate) fn valid(&self) -> bool {
+        const HOST: &str = "host";
+        const RT: &str = "rt";
+        const VM: &str = "vm";
+        const SLEW: &str = "slew";
+        const NODRIFTFIX: &str = "none";
+
+        let clock_valid = (self.clock == HOST) || (self.clock == RT) || (self.clock == VM);
+        let drift_fix_valid = (self.drift_fix == SLEW) || (self.drift_fix == NODRIFTFIX);
+        clock_valid && drift_fix_valid
+    }
+}
+
+/// QMP socket
+#[derive(Debug, Default, Serialize, Deserialize, Clone)]
+pub struct QmpSocket {
+    /// the socket's type, unix, hvsock, etc.
+    pub(crate) socket_type: String,
+
+    /// socket name
+    pub(crate) name: String,
+
+    /// is socket a server?
+    pub(crate) is_server: bool,
+
+    /// if qemu should block waiting for a client to connect
+    pub(crate) no_wait: bool,
+}
+
+impl QmpSocket {
+    pub(crate) fn valid(&self) -> bool {
+        const UNIX_SOCKET: &str = "unix";
+
+        if self.socket_type.is_empty() || self.name.is_empty() {
+            return false;
+        }
+
+        if self.socket_type != UNIX_SOCKET {
+            return false;
+        }
+
+        true
+    }
+}
+
 /// the kernel qemu runs
 #[derive(Debug, Default, Serialize, Deserialize, Clone)]
 pub struct Kernel {
