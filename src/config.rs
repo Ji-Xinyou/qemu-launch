@@ -118,6 +118,7 @@ impl QemuConfig {
             .add_no_graphic(self.no_graphic)
             .add_rtc(&self.rtc)
             .add_qmp_sockets(&self.qmp_sockets)
+            .add_vga(&self.vga)
             .add_smp(&self.smp)
             .expect("failed to build all")
     }
@@ -318,6 +319,14 @@ impl QemuConfig {
 
             self.qemu_params.push("-qmp".to_owned());
             self.qemu_params.push(qmp_params.join(","))
+        }
+        self
+    }
+
+    pub fn add_vga(mut self, vga: &str) -> Self {
+        if !vga.is_empty() {
+            self.qemu_params.push("-vga".to_owned());
+            self.qemu_params.push(vga.to_owned());
         }
         self
     }

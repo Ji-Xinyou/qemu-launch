@@ -105,6 +105,7 @@ pub struct Smp {
     pub(crate) max_cpus: u32,
 }
 
+/// qemu VM memory setups
 #[derive(Debug, Default, Clone, Serialize, Deserialize)]
 pub struct Memory {
     /// amount of memory available to guest
@@ -121,3 +122,58 @@ pub struct Memory {
     /// used by file backed memory
     pub(crate) path: String,
 }
+
+
+/// Regroups a set of qemu boolean setups
+#[derive(Debug, Default, Clone, Serialize, Deserialize)]
+pub struct Knobs {
+    /// prevents qemu from loading user config files
+    pub(crate) no_user_config: bool,
+
+    /// prevents qemu from creating default devices
+    pub(crate) no_defaults: bool,
+
+    /// disable graphic output
+    pub(crate) no_graphic: bool,
+
+    /// turn qemu process into a daemon
+    pub(crate) demonized: bool,
+
+    /// Both hugepages and mem_prealloc require the Memory.size of the VM
+    /// to be set, as they need to reserve the memory upfront in order
+    /// to let the VM boot without errors
+    ///
+    /// hugepages always result in memory pre-allocation.
+    /// However, the setup is different from normal pre-allocation.
+    /// Hence hugepages has precedence over mem_prealloc, and will preallocate
+    /// all the RAM from huge pages
+    pub(crate) hugepages: bool,
+
+    /// allocate all memory upfront
+    pub(crate) mem_prealloc: bool,
+
+    /// requires Memory.size and Memory.Path to be set
+    pub(crate) file_backed_mem: bool,
+
+    /// set the memory device as shared
+    pub(crate) mem_shared: bool,
+
+    /// control locking of memory, with this option,
+    /// qemu can pin down guest and qemu memory before bootng guest,
+    /// i.e. host will not swap them out
+    pub(crate) mlock: bool,
+
+    /// do not start guest CPU at startup
+    pub(crate) stopped: bool,
+
+    /// exit instead of reboot, prevent from rebooting in the event of
+    /// triple fault
+    pub(crate) no_reboot: bool,
+
+    /// do not exit qemu on guest shutdown, only stop emulation
+    pub(crate) no_shutdown: bool,
+
+    /// enable iommu for supported devices
+    pub(crate) iommu_platform: bool,
+}
+
