@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 use crate::device::Device;
-use crate::types::{Kernel, Machine, Memory, QmpSocket, Rtc, Smp};
+use crate::types::{Kernel, Knobs, Machine, Memory, QmpSocket, Rtc, Smp};
 
 /// the configuration of QEMU
 #[derive(Default, Serialize, Deserialize)]
@@ -58,7 +58,7 @@ pub struct QemuConfig {
     /// -global
     global_params: String,
 
-    // todo: knobs
+    knobs: Knobs,
 
     // -bios
     bios: String,
@@ -118,6 +118,7 @@ impl QemuConfig {
             .add_no_graphic(self.no_graphic)
             .add_rtc(&self.rtc)
             .add_qmp_sockets(&self.qmp_sockets)
+            .add_knobs(&self.knobs)
             .add_vga(&self.vga)
             .add_smp(&self.smp)
             .expect("failed to build all")
@@ -130,6 +131,7 @@ impl QemuConfig {
         }
     }
 
+    /// setup the seccomp
     pub fn add_seccomp(mut self, seccomp_sandbox: &str) -> Self {
         if !seccomp_sandbox.is_empty() {
             self.qemu_params.push("-sandbox".to_owned());
@@ -138,6 +140,7 @@ impl QemuConfig {
         self
     }
 
+    /// setup the name of qemu process
     pub fn add_name(mut self, name: &str) -> Self {
         if !name.is_empty() {
             self.qemu_params.push("-name".to_owned());
@@ -146,6 +149,7 @@ impl QemuConfig {
         self
     }
 
+    /// setup the machine type and related settings, e.g. accel=kvm
     pub fn add_machine(mut self, machine: &Machine) -> Self {
         if !machine.machine_type.is_empty() {
             let mut machine_params = vec![];
@@ -166,6 +170,7 @@ impl QemuConfig {
         self
     }
 
+    /// setup the cpu model that qemu emulates
     pub fn add_cpu_model(mut self, cpu_model: &str) -> Self {
         if !cpu_model.is_empty() {
             self.qemu_params.push("-cpu".to_owned());
@@ -184,6 +189,7 @@ impl QemuConfig {
         self
     }
 
+    /// setup the uuid of qemu
     pub fn add_uuid(mut self, uuid: Uuid) -> Self {
         if !uuid.is_nil() {
             self.qemu_params.push("-uuid".to_owned());
@@ -192,6 +198,7 @@ impl QemuConfig {
         self
     }
 
+    /// setup the memory for VM
     pub fn add_memory(mut self, memory: &Memory) -> Self {
         if !memory.size.is_empty() {
             let mut memory_params = vec![];
@@ -211,6 +218,7 @@ impl QemuConfig {
         self
     }
 
+    /// setup the CPU configuration for VM
     pub fn add_smp(mut self, smp: &Smp) -> Result<Self> {
         if smp.cpus > 0 {
             let mut smp_params = vec![];
@@ -243,6 +251,7 @@ impl QemuConfig {
         Ok(self)
     }
 
+    /// add global params
     pub fn add_global_params(mut self, global_params: &str) -> Self {
         if !global_params.is_empty() {
             self.qemu_params.push("-global".to_owned());
@@ -251,6 +260,7 @@ impl QemuConfig {
         self
     }
 
+    /// setup kernel, init ramdisk, and other params, e.g. -append "root=/dev/vda console=ttyS0"
     pub fn add_kernel(mut self, kernel: &Kernel) -> Self {
         if !kernel.path.is_empty() {
             self.qemu_params.push("-kernel".to_owned());
@@ -269,6 +279,7 @@ impl QemuConfig {
         self
     }
 
+    /// setup the bios that qemu uses
     pub fn add_bios(mut self, bios: &str) -> Self {
         if !bios.is_empty() {
             self.qemu_params.push("-bios".to_owned());
@@ -277,6 +288,7 @@ impl QemuConfig {
         self
     }
 
+    /// disable the graphical output
     pub fn add_no_graphic(mut self, no_graphic: bool) -> Self {
         if no_graphic {
             self.qemu_params.push("-nographic".to_owned());
@@ -284,6 +296,7 @@ impl QemuConfig {
         self
     }
 
+    /// setup the real time clock of qemu
     pub fn add_rtc(mut self, rtc: &Rtc) -> Self {
         if !rtc.valid() {
             return self;
@@ -303,6 +316,7 @@ impl QemuConfig {
         self
     }
 
+    /// add qmp sockets to qemu
     pub fn add_qmp_sockets(mut self, qmp_sockets: &Vec<QmpSocket>) -> Self {
         for socket in qmp_sockets {
             if !socket.valid() {
@@ -323,12 +337,41 @@ impl QemuConfig {
         self
     }
 
+    /// setup the vga for qemu
     pub fn add_vga(mut self, vga: &str) -> Self {
         if !vga.is_empty() {
             self.qemu_params.push("-vga".to_owned());
             self.qemu_params.push(vga.to_owned());
         }
         self
+    }
+
+    /// setup the boolean configurations
+    pub fn add_knobs(mut self, knobs: &Knobs) -> Self {
+        if knobs.no_user_config {}
+
+        if knobs.no_reboot {}
+
+        if knobs.no_graphic {}
+
+        if knobs.no_defaults {}
+
+        if knobs.no_shutdown {}
+
+        if knobs.demonized {}
+
+        self.add_knobs_memory(knobs);
+
+        if knobs.mlock {}
+
+        if knobs.stopped {}
+
+        self
+    }
+
+    /// util functions, setup memory-related boolean configurations
+    fn add_knobs_memory(&mut self, knobs: &Knobs) {
+        unimplemented!();
     }
 }
 
@@ -361,6 +404,7 @@ impl Clone for QemuConfig {
             bios: self.bios.clone(),
             qemu_params: self.qemu_params.clone(),
             rtc: self.rtc.clone(),
+            knobs: self.knobs,
             qmp_sockets: self.qmp_sockets.clone(),
         }
     }

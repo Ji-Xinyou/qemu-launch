@@ -4,7 +4,9 @@ use crate::config::QemuConfig;
 
 /// trait that Devices should implement
 pub trait Device {
+    /// self.valid() returns whether the device can return a valid param format
     fn valid(&self) -> bool;
+    /// self.set_qemu_params(config) will plug the param into config
     fn set_qemu_params(&self, config: &mut QemuConfig);
 }
 
