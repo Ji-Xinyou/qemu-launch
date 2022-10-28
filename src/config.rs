@@ -13,73 +13,99 @@ use crate::types::{MACHINE_TYPE_MICROVM, MIGRATION_DEFER, MIGRATION_EXEC, MIGRAT
 #[serde(default)]
 pub struct QemuConfig {
     /// binary path of QEMU
+    #[serde(default)]
     pub bin_path: String,
 
     /// user id
+    #[serde(default)]
     uid: u32,
 
     /// group id
+    #[serde(default)]
     gid: u32,
 
     /// groups(supplementary group IDs)
+    #[serde(default)]
     groups: Vec<u32>,
 
     /// QEMU guest name
+    #[serde(default)]
     name: String,
 
     /// uuid of qemu process
+    #[serde(default)]
     uuid: String,
 
     /// cpu model used by QEMU
+    #[serde(default)]
     cpu_model: String,
 
     /// qemu function which enables the seccomp feature
+    #[serde(default)]
     seccomp_sandbox: String,
 
     /// machine type configuration
+    #[serde(default)]
     machine: Machine,
 
+    #[serde(default)]
     qmp_sockets: Vec<QmpSocket>,
 
     #[serde(skip_deserializing, skip_serializing)]
     devices: Vec<Box<dyn Device>>,
 
+    #[serde(default)]
     rtc: Rtc,
 
     /// vga mode
+    #[serde(default)]
     vga: String,
 
     /// guest kernel configuration
+    #[serde(default)]
     kernel: Kernel,
 
     /// guest memory configuration
+    #[serde(default)]
     memory: Memory,
 
     /// guest mp configuration
+    #[serde(default)]
     smp: Smp,
 
     /// -global
+    #[serde(default)]
     global_params: String,
 
+    #[serde(default)]
     knobs: Knobs,
 
     // -bios
+    #[serde(default)]
     bios: String,
 
+    #[serde(default)]
     no_graphic: bool,
 
+    #[serde(default)]
     pflashs: Vec<String>,
 
+    #[serde(default)]
     incoming: Incoming,
 
+    #[serde(default)]
     fds: Vec<RawFd>,
 
+    #[serde(default)]
     fw_cfgs: Vec<FwCfg>,
 
+    #[serde(default)]
     io_threads: Vec<IoThread>,
 
+    #[serde(default)]
     pid_file: String,
 
+    #[serde(default)]
     log_file: String,
 
     /// qemu parameters
@@ -98,16 +124,6 @@ pub struct QemuConfig {
 /// # }
 /// ```
 impl QemuConfig {
-    /// From toml, acquires an configuration file.
-    /// the configuration did not set the [`qemu_params`] argument, i.e. the function
-    /// `build_all(&self)` is not called, instead, all the other fields are filled
-    /// In `Qemu::from_config(config: QemuConfig)`, the config.build_all() is called
-    /// at there all qemu_params will be filled.
-    pub fn from_toml(path: &str) -> Self {
-        let content = std::fs::read_to_string(path).expect("failed to fetch file content");
-        toml::from_str(&content).expect("failed to get toml content")
-    }
-
     /// Fill the `self.qemu_params` based on the fields we have filled
     /// Notice that this is not idempotent, duplicate call will append
     /// new params after the original ones
