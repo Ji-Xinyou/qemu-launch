@@ -1,5 +1,7 @@
 use serde::{Deserialize, Serialize};
 
+pub(crate) const MACHINE_TYPE_MICROVM: &str = "microvm";
+
 /// the machine that qemu will emulate...
 #[derive(Debug, Default, Serialize, Deserialize, Clone)]
 pub struct Machine {

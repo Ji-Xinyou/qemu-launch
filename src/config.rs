@@ -3,6 +3,7 @@ use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 use crate::device::Device;
+use crate::types::MACHINE_TYPE_MICROVM;
 use crate::types::{Kernel, Knobs, Machine, Memory, QmpSocket, Rtc, Smp};
 
 /// the configuration of QEMU
@@ -105,10 +106,10 @@ impl QemuConfig {
         let uuid = Uuid::new_v4();
         let cfg = self.clone();
 
-        cfg.add_cpu_model(&self.cpu_model)
+        // the order of the functions matters
+        let cfg = cfg
+            .add_cpu_model(&self.cpu_model)
             .add_bios(&self.bios)
-            .add_devices(&self.devices)
-            .add_global_params(&self.global_params)
             .add_kernel(&self.kernel)
             .add_machine(&self.machine)
             .add_memory(&self.memory)
@@ -120,8 +121,12 @@ impl QemuConfig {
             .add_qmp_sockets(&self.qmp_sockets)
             .add_knobs(&self.knobs)
             .add_vga(&self.vga)
+            .add_global_params(&self.global_params)
             .add_smp(&self.smp)
-            .expect("failed to build all")
+            .expect("failed to build all");
+
+        // call add_devices after regular appendance
+        cfg.add_devices(&self.devices)
     }
 
     /// returns a default instance of `QemuConfig`
@@ -152,14 +157,10 @@ impl QemuConfig {
     /// setup the machine type and related settings, e.g. accel=kvm
     pub fn add_machine(mut self, machine: &Machine) -> Self {
         if !machine.machine_type.is_empty() {
-            let mut machine_params = vec![];
-
-            machine_params.push(machine.machine_type.to_owned());
-
+            let mut machine_params = vec![machine.machine_type.to_owned()];
             if !machine.acceleration.is_empty() {
                 machine_params.push(format!("accel={}", machine.acceleration));
             }
-
             if !machine.options.is_empty() {
                 machine_params.push(machine.options.to_owned());
             }
@@ -346,32 +347,101 @@ impl QemuConfig {
         self
     }
 
+    /// called after add_memory()
     /// setup the boolean configurations
     pub fn add_knobs(mut self, knobs: &Knobs) -> Self {
-        if knobs.no_user_config {}
+        if knobs.no_user_config {
+            self.qemu_params.push("-no-user-config".to_owned());
+        }
 
-        if knobs.no_reboot {}
+        if knobs.no_reboot {
+            self.qemu_params.push("--no-reboot".to_owned());
+        }
 
-        if knobs.no_graphic {}
+        if knobs.no_graphic {
+            self.qemu_params.push("-nographic".to_owned());
+        }
 
-        if knobs.no_defaults {}
+        if knobs.no_defaults {
+            self.qemu_params.push("-nodefaults".to_owned());
+        }
 
-        if knobs.no_shutdown {}
+        if knobs.no_shutdown {
+            self.qemu_params.push("--no-shutdown".to_owned());
+        }
 
-        if knobs.demonized {}
+        if knobs.demonized {
+            self.qemu_params.push("-daemonize".to_owned());
+        }
 
         self.add_knobs_memory(knobs);
 
-        if knobs.mlock {}
+        if knobs.mlock {
+            self.qemu_params.push("-overcommit".to_owned());
+            self.qemu_params.push("mem-lock=on".to_owned());
+        }
 
-        if knobs.stopped {}
+        if knobs.stopped {
+            self.qemu_params.push("-S".to_owned());
+        }
 
         self
     }
 
     /// util functions, setup memory-related boolean configurations
     fn add_knobs_memory(&mut self, knobs: &Knobs) {
-        unimplemented!();
+        if self.memory.size.is_empty() {
+            return;
+        }
+        let dimm_name = "dimm1";
+        let mut obj_mem_params = if knobs.hugepages {
+            format!(
+                "memory-backend-file,id={},size={},mem-path=/dev/hugepages",
+                dimm_name, &self.memory.size
+            )
+        } else if knobs.file_backed_mem && !self.memory.path.is_empty() {
+            format!(
+                "memory-backend-file,id={},size={},mem_path={}",
+                dimm_name, &self.memory.size, &self.memory.path
+            )
+        } else {
+            format!(
+                "memory-backend-file,id={},size={}",
+                dimm_name, self.memory.size
+            )
+        };
+        let numa_mem_params = format!("node,memdev={}", dimm_name);
+
+        if knobs.mem_shared {
+            obj_mem_params += ",share=on";
+        }
+
+        if knobs.mem_prealloc {
+            obj_mem_params += ",prealloc=on";
+        }
+
+        self.qemu_params.push("-object".to_owned());
+        self.qemu_params.push(obj_mem_params);
+
+        if self.is_dimm_supported() {
+            self.qemu_params.push("-numa".to_owned());
+            self.qemu_params.push(numa_mem_params);
+        } else {
+            self.qemu_params.push("-machine".to_owned());
+            self.qemu_params
+                .push(format!("memory-backend={}", dimm_name));
+        }
+    }
+
+    fn is_dimm_supported(&self) -> bool {
+        let arch = std::env::consts::ARCH;
+        match arch {
+            "x86_64" | "powerpc64" | "aarch64" | "x86" => {
+                self.machine.machine_type != MACHINE_TYPE_MICROVM
+            }
+
+            _ => false,
+        }
     }
 }
 
