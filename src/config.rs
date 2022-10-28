@@ -1,10 +1,12 @@
+use std::os::unix::prelude::RawFd;
+
 use anyhow::{anyhow, Result};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 use crate::device::Device;
-use crate::types::MACHINE_TYPE_MICROVM;
-use crate::types::{Kernel, Knobs, Machine, Memory, QmpSocket, Rtc, Smp};
+use crate::types::{Incoming, IoThread, Kernel, Knobs, Machine, Memory, QmpSocket, Rtc, Smp, FwCfg};
+use crate::types::{MACHINE_TYPE_MICROVM, MIGRATION_DEFER, MIGRATION_EXEC, MIGRATION_FD};
 
 /// the configuration of QEMU
 #[derive(Default, Serialize, Deserialize)]
@@ -66,13 +68,20 @@ pub struct QemuConfig {
 
     no_graphic: bool,
 
-    // todo: pflash
-    // todo: incoming
-    // todo: fds
-    // todo: -fw_cfg
-    // todo: iothreads
-    // todo: pidfile
-    // todo: logfile
+    pflashs: Vec<String>,
+
+    incoming: Incoming,
+
+    fds: Vec<RawFd>,
+
+    fw_cfgs: Vec<FwCfg>,
+
+    io_threads: Vec<IoThread>,
+
+    pid_file: String,
+
+    log_file: String,
+
     /// qemu parameters
     pub qemu_params: Vec<String>,
 }
@@ -119,9 +128,14 @@ impl QemuConfig {
             .add_no_graphic(self.no_graphic)
             .add_rtc(&self.rtc)
             .add_qmp_sockets(&self.qmp_sockets)
-            .add_knobs(&self.knobs)
             .add_vga(&self.vga)
+            .add_io_threads(&self.io_threads)
+            .add_incoming(&self.incoming)
+            .add_pflash_param(&self.pflashs)
+            .add_pid_file(&self.pid_file)
+            .add_log_file(&self.log_file)
             .add_global_params(&self.global_params)
+            .add_knobs(&self.knobs)
             .add_smp(&self.smp)
             .expect("failed to build all");
 
@@ -347,7 +361,7 @@ impl QemuConfig {
         self
     }
 
-    /// called after add_memory()
+    /// XXX: ONLY called AFTER add_memory() and machine_type is set
     /// setup the boolean configurations
     pub fn add_knobs(mut self, knobs: &Knobs) -> Self {
         if knobs.no_user_config {
@@ -443,6 +457,86 @@ impl QemuConfig {
             _ => false,
         }
     }
+
+    pub fn add_io_threads(mut self, io_threads: &[IoThread]) -> Self {
+        for thread in io_threads {
+            if !thread.id.is_empty() {
+                self.qemu_params.push("-object".to_owned());
+                self.qemu_params.push(format!("iothread,id={}", &thread.id));
+            }
+        }
+        self
+    }
+
+    /// append_fds append a list of file descriptors to the qemu configuration
+    /// and returns a slice of offset file descriptors that will be seen by
+    /// the qemu process
+    pub fn append_fds(&mut self, fds: &[RawFd]) -> Vec<i32> {
+        let mut int_fds = vec![];
+        let old_length = self.fds.len();
+        fds.iter().for_each(|fd| self.fds.push(*fd));
+
+        // 3 is because no stdin, stdout, stderr
+        for i in 0..fds.len() {
+            int_fds.push(old_length as i32 + i as i32 + 3);
+        }
+        int_fds
+    }
+
+    pub fn add_incoming(mut self, incoming: &Incoming) -> Self {
+        let uri = match incoming.migration_type.as_str() {
+            MIGRATION_EXEC => {
+                format!("exec:{}", incoming.exec)
+            }
+            MIGRATION_FD => {
+                let fds = self.append_fds(&[incoming.fd]);
+                format!("fd:{}", fds[0])
+            }
+            MIGRATION_DEFER => "defer".to_string(),
+            _ => {
+                return self;
+            }
+        };
+        self.qemu_params.push("-S".to_owned());
+        self.qemu_params.push("-incoming".to_owned());
+        self.qemu_params.push(uri);
+        self
+    }
+
+    pub fn add_pflash_param(mut self, pflashs: &[String]) -> Self {
+        for pflash in pflashs {
+            self.qemu_params.push("-pflash".to_owned());
+            self.qemu_params.push(pflash.to_string());
+        }
+        self
+    }
+
+    pub fn add_pid_file(mut self, pid_file: &str) -> Self {
+        if !pid_file.is_empty() {
+            self.qemu_params.push("-pidfile".to_owned());
+            self.qemu_params.push(pid_file.to_owned());
+        }
+        self
+    }
+
+    pub fn add_log_file(mut self, log_file: &str) -> Self {
+        if !log_file.is_empty() {
+            self.qemu_params.push("-D".to_owned());
+            self.qemu_params.push(log_file.to_owned());
+        }
+        self
+    }
+
+    pub fn add_fwcfg(mut self, fw_cfgs: &[FwCfg]) -> Self {
+        // todo: qmplogger
+        for fwcfg in fw_cfgs {
+            if !fwcfg.valid() {
+                continue;
+            }
+            fwcfg.qemu_params(&mut self);
+        }
+        self
+    }
 }
 
 impl QemuConfig {
@@ -465,6 +559,11 @@ impl Clone for QemuConfig {
             seccomp_sandbox: self.seccomp_sandbox.clone(),
             machine: self.machine.clone(),
             devices: vec![],
+            fds: self.fds.clone(),
+            pflashs: self.pflashs.clone(),
+            io_threads: self.io_threads.clone(),
+            log_file: self.log_file.clone(),
+            pid_file: self.pid_file.clone(),
             vga: self.vga.clone(),
             kernel: self.kernel.clone(),
             memory: self.memory.clone(),
@@ -476,6 +575,8 @@ impl Clone for QemuConfig {
             rtc: self.rtc.clone(),
             knobs: self.knobs,
             qmp_sockets: self.qmp_sockets.clone(),
+            incoming: self.incoming.clone(),
+            fw_cfgs: self.fw_cfgs.clone(),
         }
     }
 }

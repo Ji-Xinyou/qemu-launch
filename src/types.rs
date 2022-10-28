@@ -1,5 +1,11 @@
+use std::os::unix::prelude::RawFd;
+
+use crate::config::QemuConfig;
 use serde::{Deserialize, Serialize};
 
+pub(crate) const MIGRATION_FD: &str = "fd";
+pub(crate) const MIGRATION_EXEC: &str = "exec";
+pub(crate) const MIGRATION_DEFER: &str = "defer";
 pub(crate) const MACHINE_TYPE_MICROVM: &str = "microvm";
 
 /// the machine that qemu will emulate...
@@ -212,3 +218,79 @@ pub struct Knobs {
     #[serde(default)]
     pub(crate) iommu_platform: bool,
 }
+
+/// Allows IO to be performed on a separated thread
+#[derive(Debug, Default, Clone, Serialize, Deserialize)]
+pub struct IoThread {
+    #[serde(default)]
+    pub(crate) id: String,
+}
+
+/// controls qemu live migration source preparation
+#[derive(Debug, Default, Clone, Serialize, Deserialize)]
+pub struct Incoming {
+    /// possible migration types are "fd", "exec", "defer"
+    #[serde(default)]
+    pub(crate) migration_type: String,
+
+    /// only valid if migration type is "fd"
+    #[serde(default)]
+    pub(crate) fd: RawFd,
+
+    /// only valid if migration type if "exec"
+    #[serde(default)]
+    pub(crate) exec: String,
+}
+
+/// firmware config allows qemu to pass entries to the guest, could be found under sysfs
+/// file and str are mutually exclusive
+#[derive(Debug, Default, Clone, Serialize, Deserialize)]
+pub struct FwCfg {
+    #[serde(default)]
+    pub(crate) name: String,
+
+    #[serde(default)]
+    pub(crate) file: String,
+
+    #[serde(default)]
+    pub(crate) str: String,
+}
+
+impl FwCfg {
+    /// returns whether a fwcfg is valid, and can be used
+    pub(crate) fn valid(&self) -> bool {
+        if self.name.is_empty() {
+            return false;
+        }
+
+        if !self.file.is_empty() && !self.str.is_empty() {
+            return false;
+        }
+
+        if self.file.is_empty() && self.str.is_empty() {
+            return false;
+        }
+
+        true
+    }
+
+    /// setup fwcfg's qemu params
+    pub(crate) fn qemu_params(&self, config: &mut QemuConfig) {
+        let mut fw_cfg_params = vec![];
+        if !self.name.is_empty() {
+            fw_cfg_params.push(format!("name={}", &self.name));
+        }
+
+        if !self.file.is_empty() {
+            fw_cfg_params.push(format!("file={}", &self.file));
+        }
+
+        if !self.str.is_empty() {
+            fw_cfg_params.push(format!("string={}", &self.str));
+        }
+
+        config.qemu_params.push("-fw_cfg".to_owned());
+        config.qemu_params.push(fw_cfg_params.join(","));
+    }
+}
+
