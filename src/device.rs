@@ -13,48 +13,48 @@ pub trait Device {
 
 /// QEMU object
 pub struct Object {
-	// Driver is the qemu device driver
+	/// Driver is the qemu device driver
     pub driver: DeviceDriver,
 
-	// Type is the qemu object type.
+	/// Type is the qemu object type.
     pub obj_type: ObjectType,
 
-	// ID is the user defined object ID.
+	/// ID is the user defined object ID.
     pub id: String,
 
-	// DeviceID is the user defined device ID.
+	/// DeviceID is the user defined device ID.
     pub device_id: String,
 
-	// MemPath is the object's memory path.
-	// This is only relevant for memory objects
+	/// MemPath is the object's memory path.
+	/// This is only relevant for memory objects
     pub mem_path: String,
 
-	// Size is the object size in bytes
+	/// Size is the object size in bytes
     pub size: u64,
 
-	// Debug this is a debug object
+	/// Debug this is a debug object
     pub debug: bool,
 
-	// File is the device file
+	/// File is the device file
     pub file: String,
 
-	// FirmwareVolume is the configuration volume for the firmware
-	// it can be used to split the TDVF/OVMF UEFI firmware in UEFI variables
-	// and UEFI program image.
+	/// FirmwareVolume is the configuration volume for the firmware
+	/// it can be used to split the TDVF/OVMF UEFI firmware in UEFI variables
+	/// and UEFI program image.
     pub firmware_volume: String,
 
-	// CBitPos is the location of the C-bit in a guest page table entry
-	// This is only relevant for sev-guest objects
+	/// CBitPos is the location of the C-bit in a guest page table entry
+	/// This is only relevant for sev-guest objects
     pub c_bit_pos: u32,
 
-	// ReducedPhysBits is the reduction in the guest physical address space
-	// This is only relevant for sev-guest objects
+	/// ReducedPhysBits is the reduction in the guest physical address space
+	/// This is only relevant for sev-guest objects
     pub reduced_physical_bits: u32,
 
-	// ReadOnly specifies whether `MemPath` is opened read-only or read/write (default)
+	/// ReadOnly specifies whether `MemPath` is opened read-only or read/write (default)
     pub rd_only: bool,
 
-	// Prealloc enables memory preallocation
+	/// Prealloc enables memory preallocation
     pub prealloc: bool,
 }
 
@@ -68,7 +68,42 @@ impl Device for Object {
     }
 }
 
-pub struct FSDevice {}
+/// FSDevice represents a qemu filesystem configuration.
+pub struct FSDevice {
+	/// Driver is the qemu device driver
+    pub driver: DeviceDriver,
+
+	/// FSDriver is the filesystem driver backend.
+    pub fs_driver: FsDriver,
+
+	/// ID is the filesystem identifier.
+    pub id: String,
+
+	/// Path is the host root path for this filesystem.
+    pub path: String,
+
+	/// MountTag is the device filesystem mount point tag.
+    pub mount_tag: String,
+
+	/// SecurityModel is the security model for this filesystem device.
+    pub security_model: SecurityModel,
+
+	/// DisableModern prevents qemu from relying on fast MMIO.
+    pub disabled_modern: bool,
+
+	/// ROMFile specifies the ROM file being used for this device.
+    pub rom_file: String,
+
+	/// DevNo identifies the ccw devices for s390x architecture
+    pub devno: String,
+
+	/// Transport is the virtio transport for this device.
+    pub transport: VirtioTransport,
+
+	/// Multidev is the filesystem behaviour to deal
+	/// with multiple devices being shared with a 9p export
+    pub multidev: Virtio9PMultiDev,
+}
 
 impl Device for FSDevice {
     fn set_qemu_params(&self, _config: &mut QemuConfig) {

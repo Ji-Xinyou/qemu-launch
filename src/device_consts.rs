@@ -88,3 +88,25 @@ pub const PASSTHROUGH: SecurityModelRef = "passthrough";
 pub const MAPPEDXATTR: SecurityModelRef = "mapped-xattr";
 // MappedFile stores some files attributes in the .virtfs directory.
 pub const MAPPEDFILE: SecurityModelRef = "mapped-file";
+
+pub type VirtioTransportRef<'a> = &'a str;
+pub type VirtioTransport = String;
+
+// TransportPCI is the PCI transport for virtio device.
+pub const TRANSPORTPCI: VirtioTransportRef = "pci";
+// TransportPCI is the CCW transport for virtio device.
+pub const TRANSPORTCCW: VirtioTransportRef = "ccw";
+// TransportPCI is the MMIO transport for virtio device.
+pub const TRANSPORTMMIO: VirtioTransportRef = "mmio";
+
+pub type Virtio9PMultiDevRef<'a> = &'a str;
+pub type Virtio9PMultiDev = String;
+
+// Remap shares multiple devices with only one export.
+pub const REMAP: Virtio9PMultiDevRef = "remap";
+// Warn assumes that only one device is shared by the same export.
+// Only a warning message is logged (once) by qemu on host side.
+// This is the default behaviour.
+pub const WARN: Virtio9PMultiDevRef = "warn";
+// Forbid like "warn" but also deny access to additional devices on guest.
+pub const FORBID: Virtio9PMultiDevRef = "forbid";
