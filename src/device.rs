@@ -1,6 +1,7 @@
 #![allow(dead_code)]
 
 use crate::config::QemuConfig;
+use crate::device_consts::*;
 
 /// trait that Devices should implement
 pub trait Device {
@@ -8,6 +9,63 @@ pub trait Device {
     fn valid(&self) -> bool;
     /// self.set_qemu_params(config) will plug the param into config
     fn set_qemu_params(&self, config: &mut QemuConfig);
+}
+
+/// QEMU object
+pub struct Object {
+	// Driver is the qemu device driver
+    pub driver: DeviceDriver,
+
+	// Type is the qemu object type.
+    pub obj_type: ObjectType,
+
+	// ID is the user defined object ID.
+    pub id: String,
+
+	// DeviceID is the user defined device ID.
+    pub device_id: String,
+
+	// MemPath is the object's memory path.
+	// This is only relevant for memory objects
+    pub mem_path: String,
+
+	// Size is the object size in bytes
+    pub size: u64,
+
+	// Debug this is a debug object
+    pub debug: bool,
+
+	// File is the device file
+    pub file: String,
+
+	// FirmwareVolume is the configuration volume for the firmware
+	// it can be used to split the TDVF/OVMF UEFI firmware in UEFI variables
+	// and UEFI program image.
+    pub firmware_volume: String,
+
+	// CBitPos is the location of the C-bit in a guest page table entry
+	// This is only relevant for sev-guest objects
+    pub c_bit_pos: u32,
+
+	// ReducedPhysBits is the reduction in the guest physical address space
+	// This is only relevant for sev-guest objects
+    pub reduced_physical_bits: u32,
+
+	// ReadOnly specifies whether `MemPath` is opened read-only or read/write (default)
+    pub rd_only: bool,
+
+	// Prealloc enables memory preallocation
+    pub prealloc: bool,
+}
+
+impl Device for Object {
+    fn set_qemu_params(&self, _config: &mut QemuConfig) {
+        unimplemented!();
+    }
+
+    fn valid(&self) -> bool {
+        unimplemented!();
+    }
 }
 
 pub struct FSDevice {}
