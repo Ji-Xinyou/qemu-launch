@@ -1,2 +1,3 @@
-# qemu-manip
-Manipulate QEMU in Rust
+# qemu-launch
+Launch QEMU in Rust
+
